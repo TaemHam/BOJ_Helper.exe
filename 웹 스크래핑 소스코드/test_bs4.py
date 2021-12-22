@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-url = "https://www.acmicpc.net/problem/1000"
+url = "https://www.acmicpc.net/problem/18352"
 res = requests.get(url)
 res.raise_for_status()
 
