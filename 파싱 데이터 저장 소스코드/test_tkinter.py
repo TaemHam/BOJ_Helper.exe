@@ -5,7 +5,6 @@ from tkinter import filedialog
 from tkinter import *
 import os
 
-config = configparser.ConfigParser()
 
 def create_config_folder(config_path):
     try:
@@ -14,6 +13,8 @@ def create_config_folder(config_path):
         return
 
 def config_generator():
+    
+    config = configparser.ConfigParser()
 
     config['save'] = {}
     config['save']['path'] = os.path.expanduser('~\\Documents\\Github\\work')
@@ -27,7 +28,8 @@ def config_generator():
         config.write(config_file)
 
 def config_edit():
-
+    
+    config = configparser.ConfigParser()
     config.read(os.path.expanduser('~\\Documents\\BOJ Helper\\config.ini'), encoding = 'utf-8') 
 
     root = Tk()
@@ -69,7 +71,6 @@ def config_edit():
 
     def save_status(event):
         config['save']['path'] = root.dirName
-        
         if entry_py_name.get() == '':
             entry_save = config['save']['py_name']
         elif entry_py_name.get().endswith('.py') != True:

@@ -13,7 +13,7 @@ def main():
     except ValueError:
         print('\n잘못된 형식의 번호입니다.')
         return 'e'
-
+        
     url = 'https://www.acmicpc.net/problem/' + question_number
 
     res = requests.get(url)
@@ -42,7 +42,9 @@ def main():
     folder_path = input('\n저장경로를 입력해 주십시오.\n내 문서 폴더를 이용하시려면, \\문서 로 시작되는 경로를 입력하여 주십시오.\n')
     folder_path.rstrip('\\')
     if folder_path[:3] == '\\문서':
-        folder_path = os.path.expanduser('~\\Documents') + folder_path[3:]
+        folder_path = os.path.expanduser(
+            '~\\Documents'
+            ) + folder_path[3:]
 
     ask_add_folder = input('\n경로 가장 끝에 추가할 폴더 이름을 입력해 주십시오.\n문제 번호라면 \\번호 를, 필요 없다면 빈 공백을 입력해 주십시오.\n')
     if ask_add_folder:
