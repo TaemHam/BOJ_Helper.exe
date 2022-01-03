@@ -1,0 +1,11 @@
+cmd 관리자 권한으로 실행
+
+cd C:\Users\tk400\Documents\GitHub\BOJ_Helper.exe
+
+pyinstaller -w -F --icon=favicon.ico BOJ_Helper.py
+
+(hook-cefpython3 파이썬 파일 디렉토리에 만들기)
+
+spec 파일 열어서 hookspath에 '.' 추가
+
+pyinstaller -w -F --clean BOJ_Helper.spec

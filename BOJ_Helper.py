@@ -1,21 +1,21 @@
-import configparser
-import tkinter as tk
+import configparser                                                         # 설정 파일 저장
+import tkinter as tk                                                        # GUI 구현
 import tkinter.font as tkFont
 from tkinter import filedialog
 from tkinter import *
 import os
 import sys
-from bs4.element import NavigableString
-import requests
+from bs4.element import NavigableString                                     # 웹크롤링
 from bs4 import BeautifulSoup
-import shutil
+import requests
 import re
 import pystray
-from pystray import MenuItem as item
+from pystray import MenuItem as item                                        # 시스템 트레이에 최소화                               
 from PIL import Image
-from shutil import rmtree
-from cefpython3 import cefpython as cef
-from pynput import keyboard
+from shutil import rmtree                                                   # 폴더 지우기
+from cefpython3 import cefpython as cef                                     # HTML 불러오기
+from pynput import keyboard                                                 # 핫키
+                                                                            # + exe 실행 파일을 만들기 위해 pyinstaller 설치
 config = configparser.ConfigParser()
 
 
@@ -28,32 +28,20 @@ def create_folder(path):
 def config_generator():
 
     config['save'] = {}
-    config['save']['path'] = os.path.expanduser('~\\Documents\\BOJ Helper')
+    config['save']['path'] = os.path.expanduser('~/Documents/BOJ Helper')
     config['save']['py_name'] = 'main.py'
     config['save']['eg_exist'] = '0'
     config['save']['eg_name'] = 'i'
     config['save']['temp_exist'] = '0'
-    config['save']['tamp_path'] = os.path.expanduser('~\\Documents\\BOJ Helper')
+    config['save']['temp_path'] = os.path.expanduser('~/template.py')
 
     with open(os.path.expanduser('~\\Documents\\BOJ Helper\\config.ini'), 'w', encoding='utf-8') as config_file:
         config.write(config_file)
-        config.close()
+
 
 def main():
 
 # -------------------------------------------기본 세팅------------------------------------------
-
-    config.read(os.path.expanduser('~\\Documents\\BOJ Helper\\config.ini'), encoding = 'utf-8') 
-
-    root = Tk()
-    root.title("설정")
-    app_width = 336
-    app_height = 620
-    root.geometry(f'{app_width}x{app_height}-{0}-{40}')
-    root.configure(bg= '#1E1E1E', relief = 'solid', bd = 1, takefocus= True)
-    root.resizable(False, False)
-    root.attributes("-topmost", True)
-    root.overrideredirect(True)
 
     def start_move(event):
         global grip_x, grip_y
@@ -92,11 +80,13 @@ def main():
         event.widget['bg'] = '#3C3C3C'
 
     def close_window(event):
-        event.widget.master.master.destroy()
+        root.destroy()
+        cef.Shutdown()
 
     def close_tray_icon(icon, item):
         icon.stop()
         root.destroy()
+        cef.Shutdown()
 
     def show_window(icon, item):
         icon.stop()
@@ -104,12 +94,24 @@ def main():
 
     def hide_window(event):
         root.withdraw()
-        icon_image= Image.open(os.path.expanduser('~\\Documents\\BOJ Helper\\favicon.ico'))
-        icon_menu= pystray.Menu(item('Show', show_window, default= True), item('Quit', close_tray_icon))
-        icon= pystray.Icon('BOJ Helper', icon_image, "BOJ Helper", icon_menu)
         icon.run()
 
-    
+    config.read(os.path.expanduser('~\\Documents\\BOJ Helper\\config.ini'), encoding = 'utf-8') 
+
+    root = Tk()
+    root.title("설정")
+    app_width = 336
+    app_height = 620
+    root.geometry(f'{app_width}x{app_height}-{0}-{40}')
+    root.configure(bg= '#1E1E1E', relief = 'solid', bd = 1, takefocus= True)
+    root.resizable(False, False)
+    root.attributes("-topmost", True)
+    root.overrideredirect(True)
+
+    icon_image= Image.open(os.path.expanduser('~\\Documents\\BOJ Helper\\favicon.ico'))
+    icon_menu= pystray.Menu(item('Show', show_window, default= True), item('Quit', close_tray_icon))
+    icon= pystray.Icon('BOJ Helper', icon_image, "BOJ Helper", icon_menu)
+
     frame_top = Frame(root, relief= 'flat', height= 30, bg= '#3c3c3c')
     frame_top.bind("<ButtonPress-1>", start_move)
     frame_top.bind("<ButtonRelease-1>", stop_move)
@@ -344,12 +346,15 @@ def main():
     label_q_num = Label(frame_label_q_num, font= font_default, text= ')', bg= bg_default, fg= font_white)
     label_q_num.pack(side= 'left')
 
-    entry_q_num = Entry(line_2, width= 7, font= font_default, bd= 0, bg= '#36393d',
+    frame_entry_q_num= Frame(line_2, bg= bg_default, height= 20, width = 56)
+    frame_entry_q_num.propagate(False)
+    frame_entry_q_num.pack(side= 'right')
+    entry_q_num = Entry(frame_entry_q_num, font= font_default, bd= 0, bg= '#36393d',
                         fg= font_lime, insertbackground= font_num2, justify = 'center')
     entry_q_num.dirName = ''
     entry_q_num.bind('<FocusIn>', entry_q_num_clear)
     entry_q_num.bind('<FocusOut>', entry_q_num_focus_out)
-    entry_q_num.pack(side= 'right')
+    entry_q_num.pack(expand= True)
     frame_label_q_num= Frame(line_2, bg= bg_default, height= 20, width = 8)
     frame_label_q_num.propagate(False)
     frame_label_q_num.pack(side= 'right')
@@ -750,7 +755,7 @@ def main():
     frame_temp_path_dir.propagate(False)
     frame_temp_path_dir.pack(side= 'left')
     label_temp_path_dir = Label(frame_temp_path_dir, font= font_default, text = show_temp_path, bg= bg_default, fg= font_orange, wraplength= 224, justify= 'left')
-    label_temp_path_dir.pack(anchor= 'w', fill= 'both')
+    label_temp_path_dir.pack(anchor= 'w')
 
     frame_temp_path = Frame(line_13, bg= bg_default, height= 20, width = 8)
     frame_temp_path.propagate(False)
@@ -919,6 +924,11 @@ def main():
             return
     
         save_status()
+        if config['save']['temp_exist'] == '1':
+            if not os.path.isfile(config['save']['temp_path']):
+                print_error('템플릿 파일이 존재하지 않습니다.')
+                return
+
         soup = BeautifulSoup(res.text, "lxml")
         question = soup.find_all("div", {"class" : "problem-text"})
 
@@ -940,7 +950,7 @@ def main():
                 f.write(sample_temp)
 
 
-        cache_folder = os.path.expanduser('~\\Documents\\BOJ Helper\\cache')
+        cache_folder = os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache')
 
         if not os.path.isdir(cache_folder):
             create_folder(cache_folder)
@@ -961,7 +971,7 @@ def main():
         info3 = info3.get_text()
         joined_str = '\n'.join([question_number, question_title, info1, info2, info3])
         
-        with open(os.path.expanduser('~\\Documents\\BOJ Helper\\cache\\0_q_'+ str(question_number) +'.html'), 'w', encoding = "utf8") as f:
+        with open(os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache\\0_q_'+ str(question_number) +'.html'), 'w', encoding = "utf8") as f:
             f.write(joined_str)
         
         question = soup.find_all("div", {"class" : "problem-text"})
@@ -990,31 +1000,29 @@ def main():
             if question[i-1] == False:
                 continue
             if i <= 4:
-                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\cache\\'+ str(i) + '_' + question_tag[i-1] +'.html'), 'w', encoding = "utf8") as f:
+                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache\\'+ str(i) + '_' + question_tag[i-1] +'.html'), 'w', encoding = "utf8") as f:
                     f.write(question_array[i-1])
             elif 4 < i < len(question):
-                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\cache\\'+ str(i) + '_' + question_tag[4] + str(i-4) +'.html'), 'w', encoding = "utf8") as f:
+                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache\\'+ str(i) + '_' + question_tag[4] + str(i-4) +'.html'), 'w', encoding = "utf8") as f:
                     f.write(question_array[i-1])
             else:
-                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\cache\\'+ str(i) + '_' + question_tag[5] +'.html'), 'w', encoding = "utf8") as f:
+                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache\\'+ str(i) + '_' + question_tag[5] +'.html'), 'w', encoding = "utf8") as f:
                     f.write(question_array[i-1])
 
         compile_complete(question_title)
         
 
-# ---------------------------------------------------------------------------------------------
+# -----------------------------------------문제 불러오기----------------------------------------
 
     def show_problem(event):
 
-        def close_problem_window(event):
+        def close_problem_window():
             root.deiconify()
             listener.stop()
             problem_window.after(0, problem_window.destroy)
 
-        def close_problem_window_hk():
-            root.deiconify()
-            listener.stop()
-            problem_window.after(0, problem_window.destroy)
+        def close_problem_window_btn(event):
+            close_problem_window()
         
         def toggle_problem_window():
             global pw_state
@@ -1091,12 +1099,24 @@ def main():
         def prev_button(event):
             prev_frame()
 
-        listener = keyboard.GlobalHotKeys({'<alt>+,': prev_frame, '<alt>+.': next_frame, '<alt>+/': toggle_problem_window, '<alt>+q': close_problem_window_hk})
+        listener = keyboard.GlobalHotKeys({'<alt>+,': prev_frame, '<alt>+.': next_frame, '<alt>+/': toggle_problem_window, '<alt>+q': close_problem_window})
         listener.start()
         
         problem_window = tk.Toplevel(root)
         root.withdraw()
-        cef.Initialize()
+
+        create_folder(os.path.expanduser('~\\Documents\\BOJ Helper\\web_cache'))
+
+        if hasattr(sys, '_MEIPASS'):
+            settings = {'locales_dir_path': os.path.join(sys._MEIPASS, 'locales'),
+                        'resources_dir_path': sys._MEIPASS,
+                        'browser_subprocess_path': os.path.join(sys._MEIPASS, 'subprocess.exe'),
+                        'log_file': os.path.join(sys._MEIPASS, 'debug.log'),
+                        'cache_path': os.path.expanduser('~\\Documents\\BOJ Helper\\web_cache')}
+        else:
+            settings = {'cache_path': os.path.expanduser('~\\Documents\\BOJ Helper\\web_cache')}
+
+        cef.Initialize(settings= settings)
         sys.exceptionhook= cef.ExceptHook
 
         global pw_state
@@ -1116,7 +1136,7 @@ def main():
         frame_top.propagate(False)
 
         button_close = Label(frame_top, text='\u26CC', font= font_problem_button1, padx= 6, relief= 'flat', bg= '#3c3c3c', fg= '#c7c7c7')
-        button_close.bind("<ButtonRelease-1>", close_problem_window)
+        button_close.bind("<ButtonRelease-1>", close_problem_window_btn)
         button_close.bind("<Enter>", close_on_enter)
         button_close.bind("<Leave>", close_on_leave)
         button_close.pack(side= 'left', fill= 'y')
@@ -1150,7 +1170,7 @@ def main():
         global current_frame
         current_frame = 0
         callable_frame = []
-        for f_name in os.listdir(os.path.expanduser('~\\Documents\\BOJ Helper\\cache')):
+        for f_name in os.listdir(os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache')):
 
             block_type = f_name[2:-5]
             sample_explain_num = 0
@@ -1159,7 +1179,7 @@ def main():
                 frame_browser_problem = Frame(problem_window, bg= '#1e1e1e')
                 frame_browser_problem.pack(fill= 'both', expand= True)
 
-                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\cache\\' + f_name), 'r', encoding='utf-8') as question_info_file:
+                with open(os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache\\' + f_name), 'r', encoding='utf-8') as question_info_file:
                     question_info = question_info_file.read().split('\n')
 
                 frame_question_info = Frame(frame_browser_problem, bg= '#1e1e1e', height= 50)
@@ -1275,7 +1295,7 @@ def main():
             rect = [0, 0, self.winfo_width(), self.winfo_height()]
             window_info.SetAsChild(self.get_window_handle(), rect)
             self.browser = cef.CreateBrowserSync(window_info,
-                                                 url='file://' + os.path.expanduser('~\\Documents\\BOJ Helper\\cache\\' + self.call_name))
+                                                 url='file://' + os.path.expanduser('~\\Documents\\BOJ Helper\\app_cache\\' + self.call_name))
             assert self.browser
             self.message_loop_work()
 
@@ -1294,7 +1314,7 @@ def main():
                 self.embed_browser()
 
 
-# ---------------------------------------------------------------------------------------------
+# ------------------------------------------터미널 버튼-----------------------------------------
 
     def terminal_button_on_enter(event):
         event.widget['bg'] = '#3a3a3a'
@@ -1304,6 +1324,8 @@ def main():
     
 
     entry_q_num.bind('<Return>', create_file)
+    entry_py_name.bind('<Return>', create_file)
+    entry_eg_name.bind('<Return>', create_file)
     frame_terminal = Frame(root, bg= '#1e1e1e', width= app_width, height= 150)
     frame_terminal.propagate(False)
     frame_terminal.pack(side= 'bottom')
